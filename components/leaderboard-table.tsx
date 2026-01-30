@@ -1,100 +1,70 @@
 "use client";
 
 import Image from "next/image";
-import { TierBadge } from "./tier-badge";
+import { TierBadge, MODE_ORDER } from "./tier-badge";
 import { Info, ExternalLink, Headphones } from "lucide-react";
+import { useTierContext, calculateOverallTier, type PlayerTiers } from "@/lib/tier-context";
 
-// For Overall and LTMs: simple T1-T5 system
-// For all other 17 modes: High/Low system with 10 levels
-type TierLevel = "T1" | "T2" | "T3" | "T4" | "T5" | "HT1" | "HT2" | "HT3" | "HT4" | "HT5" | "LT1" | "LT2" | "LT3" | "LT4" | "LT5" | "-";
-type Region = "NA" | "EU" | "AS" | "SA" | "OC" | "AR" | "PE" | "CL" | "CO" | "MX" | "EC" | "BL" | "VE";
-type Title = "Combat Grandmaster" | "Combat Master" | "Combat Ace" | "Unranked";
-
-interface Player {
-  rank: number;
-  username: string;
-  title: Title;
-  points: number;
-  region: Region;
-  tiers: {
-    overall: TierLevel;
-    ltms: TierLevel;
-    vanilla: TierLevel;
-    uhc: TierLevel;
-    pot: TierLevel;
-    nethop: TierLevel;
-    smp: TierLevel;
-    sword: TierLevel;
-    mace: TierLevel;
-    gapple18: TierLevel;
-    classic18: TierLevel;
-    axepvp18: TierLevel;
-    soup18: TierLevel;
-    debuff18: TierLevel;
-    nodebuff18: TierLevel;
-    sumo18: TierLevel;
-    boxing18: TierLevel;
-    builduhc18: TierLevel;
-    axe: TierLevel;
+// Overall badge component (calculated from all modes)
+function OverallBadge({ tiers }: { tiers: PlayerTiers }) {
+  const overallTier = calculateOverallTier(tiers);
+  const isEmpty = overallTier === "-";
+  
+  const tierBgColors: Record<string, string> = {
+    HT1: "bg-cyan-300/30 border-cyan-300",
+    LT1: "bg-cyan-500/25 border-cyan-400",
+    HT2: "bg-teal-400/25 border-teal-400",
+    LT2: "bg-teal-600/20 border-teal-500",
+    HT3: "bg-emerald-500/20 border-emerald-400",
+    LT3: "bg-green-600/20 border-green-500",
+    HT4: "bg-lime-600/20 border-lime-500",
+    LT4: "bg-yellow-700/20 border-yellow-600",
+    HT5: "bg-amber-700/20 border-amber-600",
+    LT5: "bg-stone-700/25 border-stone-500",
+    "-": "bg-gray-800/50 border-gray-600",
   };
+
+  const tierTextColors: Record<string, string> = {
+    HT1: "text-cyan-300",
+    LT1: "text-cyan-400",
+    HT2: "text-teal-400",
+    LT2: "text-teal-500",
+    HT3: "text-emerald-400",
+    LT3: "text-green-500",
+    HT4: "text-lime-500",
+    LT4: "text-yellow-600",
+    HT5: "text-amber-600",
+    LT5: "text-stone-500",
+    "-": "text-gray-600",
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-0 mr-2">
+      <div
+        className={`w-8 h-8 rounded-lg flex items-center justify-center border-2 ${tierBgColors[overallTier]}`}
+      >
+        {!isEmpty && (
+          <div className="relative w-5 h-5">
+            <Image
+              src="https://minecraft.wiki/images/Totem_of_Undying_JE2_BE2.png"
+              alt="Overall"
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+        )}
+      </div>
+      <span className={`text-[8px] font-bold ${tierTextColors[overallTier]}`}>
+        {isEmpty ? "-" : overallTier}
+      </span>
+    </div>
+  );
 }
 
-const defaultTiers = {
-  overall: "-" as TierLevel,
-  ltms: "-" as TierLevel,
-  vanilla: "-" as TierLevel,
-  uhc: "-" as TierLevel,
-  pot: "-" as TierLevel,
-  nethop: "-" as TierLevel,
-  smp: "-" as TierLevel,
-  sword: "-" as TierLevel,
-  mace: "-" as TierLevel,
-  gapple18: "-" as TierLevel,
-  classic18: "-" as TierLevel,
-  axepvp18: "-" as TierLevel,
-  soup18: "-" as TierLevel,
-  debuff18: "-" as TierLevel,
-  nodebuff18: "-" as TierLevel,
-  sumo18: "-" as TierLevel,
-  boxing18: "-" as TierLevel,
-  builduhc18: "-" as TierLevel,
-  axe: "-" as TierLevel,
-};
+type Title = "Combat Grandmaster" | "Combat Master" | "Combat Ace" | "Unranked";
 
-const players: Player[] = [
-  { rank: 1, username: "AntiNoah159", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 2, username: "BlackHer", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 3, username: "Pokelexstoll", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 4, username: "Zokex_", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 5, username: "MIKA350KA", title: "Unranked", points: 0, region: "CL", tiers: { ...defaultTiers } },
-  { rank: 6, username: "Krzctm", title: "Unranked", points: 0, region: "CL", tiers: { ...defaultTiers } },
-  { rank: 7, username: "SaukTRed", title: "Unranked", points: 0, region: "CL", tiers: { ...defaultTiers } },
-  { rank: 8, username: "iTzQuasar", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 9, username: "zmv_", title: "Unranked", points: 0, region: "CO", tiers: { ...defaultTiers } },
-  { rank: 10, username: "yEmii1", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 11, username: "CounterENNor", title: "Unranked", points: 0, region: "AR", tiers: { ...defaultTiers } },
-  { rank: 12, username: "DiscosRayado", title: "Unranked", points: 0, region: "EC", tiers: { ...defaultTiers } },
-  { rank: 13, username: "ABILACH", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 14, username: "Murder_Back", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 15, username: "Fooglees", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 16, username: "IBRUCEI", title: "Unranked", points: 0, region: "BL", tiers: { ...defaultTiers } },
-  { rank: 17, username: "Itachi2305", title: "Unranked", points: 0, region: "VE", tiers: { ...defaultTiers } },
-  { rank: 18, username: "LinoGuaton", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 19, username: "TS_Danco", title: "Unranked", points: 0, region: "MX", tiers: { ...defaultTiers } },
-  { rank: 20, username: "Chiku2325", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 21, username: "BluDef",  title: "Unranked", points: 0, region: "MX", tiers: { ...defaultTiers } },
-  { rank: 22, username: "Player_22", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 23, username: "Player_23", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 24, username: "Player_24", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 25, username: "Player_25", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 26, username: "Player_26", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 27, username: "Player_27", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 28, username: "Player_28", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 29, username: "Player_29", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-  { rank: 30, username: "Player_30", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
-];
-
-const regionColors: Record<Region, string> = {
+const regionColors: Record<string, string> = {
   NA: "bg-green-600",
   EU: "bg-blue-600",
   AS: "bg-yellow-600",
@@ -131,8 +101,8 @@ const rankStyles = (rank: number) => {
   return "text-muted-foreground font-semibold text-xl";
 };
 
-const rowGlow = (rank: number, points: number) => {
-  if (points <= 0) return "";
+const rowGlow = (rank: number, hasRankedTiers: boolean) => {
+  if (!hasRankedTiers) return "";
   if (rank === 1) return "shadow-[0_0_20px_rgba(250,204,21,0.3)] bg-yellow-500/5";
   if (rank === 2) return "shadow-[0_0_20px_rgba(192,192,192,0.25)] bg-gray-400/5";
   if (rank === 3) return "shadow-[0_0_20px_rgba(251,146,60,0.25)] bg-orange-500/5";
@@ -140,7 +110,23 @@ const rowGlow = (rank: number, points: number) => {
 };
 
 export function LeaderboardTable() {
-  const allPlayers = players; // Declare the allPlayers variable
+  const { players } = useTierContext();
+
+  // Sort players by overall tier (calculated)
+  const sortedPlayers = [...players].sort((a, b) => {
+    const aOverall = calculateOverallTier(a.tiers);
+    const bOverall = calculateOverallTier(b.tiers);
+    const tierOrder = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5", "-"];
+    return tierOrder.indexOf(aOverall) - tierOrder.indexOf(bOverall);
+  }).map((player, index) => ({ ...player, rank: index + 1 }));
+
+  if (players.length === 0) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-8 text-center">
+        <p className="text-muted-foreground">No players added yet. Add players in the Tier Management section below.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -166,112 +152,96 @@ export function LeaderboardTable() {
         <div>#</div>
         <div>Player</div>
         <div className="text-center">Region</div>
-        <div className="text-right">Tiers</div>
+        <div className="text-right">Overall + 17 Modes</div>
       </div>
 
       {/* Table body */}
       <div className="divide-y divide-border">
-        {allPlayers.map((player) => (
-          <div
-            key={`${player.username}-${player.rank}`}
-            className={`grid grid-cols-[140px_1fr_80px_auto] gap-4 px-4 py-3 items-center hover:bg-secondary/30 transition-colors ${rowGlow(player.rank, player.points)}`}
-          >
-            {/* Rank + Avatar with trapezoid */}
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex items-center gap-2 px-3 py-2 ${
-                  player.rank === 1
-                    ? "bg-[#FFD700]"
-                    : player.rank === 2
-                      ? "bg-gray-500"
-                      : player.rank === 3
-                        ? "bg-orange-600"
-                        : "bg-secondary"
-                }`}
-                style={{
-                  clipPath: "polygon(0 0, 100% 0, 85% 100%, 0 100%)",
-                }}
-              >
-                <span className={`${player.rank <= 3 ? "text-background font-bold text-xl" : rankStyles(player.rank)}`}>
-                  {player.rank}.
-                </span>
+        {sortedPlayers.map((player) => {
+          const hasRankedTiers = MODE_ORDER.some(mode => player.tiers[mode] !== "-");
+          return (
+            <div
+              key={player.id}
+              className={`grid grid-cols-[140px_1fr_80px_auto] gap-4 px-4 py-3 items-center hover:bg-secondary/30 transition-colors ${rowGlow(player.rank, hasRankedTiers)}`}
+            >
+              {/* Rank + Avatar with trapezoid */}
+              <div className="flex items-center gap-2">
                 <div
-                  className={`relative w-10 h-10 rounded overflow-hidden ${
-                    player.rank === 1 ? "shadow-[0_0_15px_5px_rgba(255,215,0,0.6)]" : ""
+                  className={`flex items-center gap-2 px-3 py-2 ${
+                    player.rank === 1 && hasRankedTiers
+                      ? "bg-[#FFD700]"
+                      : player.rank === 2 && hasRankedTiers
+                        ? "bg-gray-500"
+                        : player.rank === 3 && hasRankedTiers
+                          ? "bg-orange-600"
+                          : "bg-secondary"
                   }`}
+                  style={{
+                    clipPath: "polygon(0 0, 100% 0, 85% 100%, 0 100%)",
+                  }}
                 >
-                  <Image
-                    src={`https://mc-heads.net/avatar/${player.username}`}
-                    alt={player.username}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Player */}
-            <div className="flex items-center gap-3">
-              <div>
-                <div className="font-semibold text-foreground">
-                  {player.username}
-                </div>
-                <div className="flex items-center gap-1.5 text-sm">
-                  <div className="relative w-4 h-4">
+                  <span className={`${player.rank <= 3 && hasRankedTiers ? "text-background font-bold text-xl" : rankStyles(player.rank)}`}>
+                    {player.rank}.
+                  </span>
+                  <div
+                    className={`relative w-10 h-10 rounded overflow-hidden ${
+                      player.rank === 1 && hasRankedTiers ? "shadow-[0_0_15px_5px_rgba(255,215,0,0.6)]" : ""
+                    }`}
+                  >
                     <Image
-                      src={titleIcons[player.title] || "/placeholder.svg"}
-                      alt={player.title}
+                      src={`https://mc-heads.net/avatar/${player.username}`}
+                      alt={player.username}
                       fill
-                      className="object-contain"
+                      className="object-cover"
                       unoptimized
                     />
                   </div>
-                  <span className={titleColors[player.title]}>
-                    {player.title}
-                  </span>
-                  {player.points > 0 && (
-                    <span className="text-muted-foreground">
-                      ({player.points} points)
-                    </span>
-                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Region */}
-            <div className="flex justify-center">
-              <span
-                className={`${regionColors[player.region]} text-white text-xs font-bold px-3 py-1 rounded-md`}
-              >
-                {player.region}
-              </span>
-            </div>
+              {/* Player */}
+              <div className="flex items-center gap-3">
+                <div>
+                  <div className="font-semibold text-foreground">
+                    {player.username}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <div className="relative w-4 h-4">
+                      <Image
+                        src={titleIcons["Unranked"] || "/placeholder.svg"}
+                        alt="Unranked"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                    <span className={titleColors["Unranked"]}>
+                      Unranked
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-            {/* Tiers - 19 mode slots */}
-            <div className="flex justify-end gap-0.5">
-              <TierBadge tier={player.tiers.overall} mode="overall" />
-              <TierBadge tier={player.tiers.ltms} mode="ltms" />
-              <TierBadge tier={player.tiers.vanilla} mode="vanilla" />
-              <TierBadge tier={player.tiers.uhc} mode="uhc" />
-              <TierBadge tier={player.tiers.pot} mode="pot" />
-              <TierBadge tier={player.tiers.nethop} mode="nethop" />
-              <TierBadge tier={player.tiers.smp} mode="smp" />
-              <TierBadge tier={player.tiers.sword} mode="sword" />
-              <TierBadge tier={player.tiers.mace} mode="mace" />
-              <TierBadge tier={player.tiers.gapple18} mode="gapple18" />
-              <TierBadge tier={player.tiers.classic18} mode="classic18" />
-              <TierBadge tier={player.tiers.axepvp18} mode="axepvp18" />
-              <TierBadge tier={player.tiers.soup18} mode="soup18" />
-              <TierBadge tier={player.tiers.debuff18} mode="debuff18" />
-              <TierBadge tier={player.tiers.nodebuff18} mode="nodebuff18" />
-              <TierBadge tier={player.tiers.sumo18} mode="sumo18" />
-              <TierBadge tier={player.tiers.boxing18} mode="boxing18" />
-              <TierBadge tier={player.tiers.builduhc18} mode="builduhc18" />
-              <TierBadge tier={player.tiers.axe} mode="axe" />
+              {/* Region */}
+              <div className="flex justify-center">
+                <span className={`${regionColors[player.region] || "bg-gray-600"} text-white text-xs font-bold px-3 py-1 rounded-md`}>
+                  {player.region}
+                </span>
+              </div>
+
+              {/* Tiers - Overall badge + 17 mode slots */}
+              <div className="flex justify-end items-center gap-0.5">
+                {/* Overall Badge (calculated) */}
+                <OverallBadge tiers={player.tiers} />
+                
+                {/* 17 Mode slots in strict order */}
+                {MODE_ORDER.map((mode) => (
+                  <TierBadge key={mode} tier={player.tiers[mode]} mode={mode} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

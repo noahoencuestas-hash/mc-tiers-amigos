@@ -1,11 +1,10 @@
 import Image from "next/image";
 
-// For Overall and LTMs: simple T1-T5 system
-// For all other 17 modes: High/Low system with 10 levels
-type TierLevel = "T1" | "T2" | "T3" | "T4" | "T5" | "HT1" | "HT2" | "HT3" | "HT4" | "HT5" | "LT1" | "LT2" | "LT3" | "LT4" | "LT5" | "-";
-type ModeType = 
-  | "overall" 
-  | "ltms" 
+// 17 game modes with 10 tier levels each (HT1 highest to LT5 lowest)
+export type TierLevel = "HT1" | "HT2" | "HT3" | "HT4" | "HT5" | "LT1" | "LT2" | "LT3" | "LT4" | "LT5" | "-";
+
+// The 17 game modes in strict order
+export type ModeType = 
   | "vanilla" 
   | "uhc" 
   | "pot" 
@@ -24,14 +23,39 @@ type ModeType =
   | "builduhc18" 
   | "axe";
 
+// Strict order of all 17 modes (for mapping slots)
+export const MODE_ORDER: ModeType[] = [
+  "vanilla", "uhc", "pot", "nethop", "smp", "sword", "mace",
+  "gapple18", "classic18", "axepvp18", "soup18", "debuff18", 
+  "nodebuff18", "sumo18", "boxing18", "builduhc18", "axe"
+];
+
+export const MODE_LABELS: Record<ModeType, string> = {
+  vanilla: "Vanilla",
+  uhc: "UHC",
+  pot: "Pot",
+  nethop: "NethOP",
+  smp: "SMP",
+  sword: "Sword",
+  mace: "Mace",
+  gapple18: "Gapple (1.8)",
+  classic18: "Classic (1.8)",
+  axepvp18: "AxePVP (1.8)",
+  soup18: "Soup (1.8)",
+  debuff18: "Debuff (1.8)",
+  nodebuff18: "NoDebuff (1.8)",
+  sumo18: "Sumo (1.8)",
+  boxing18: "Boxing (1.8)",
+  builduhc18: "BuildUHC (1.8)",
+  axe: "Axe",
+};
+
 interface TierBadgeProps {
   tier: TierLevel;
   mode: ModeType;
 }
 
-const modeIcons: Record<ModeType, string> = {
-  overall: "https://minecraft.wiki/images/Totem_of_Undying_JE2_BE2.png",
-  ltms: "https://minecraft.wiki/images/Clock_JE3_BE3.gif",
+export const modeIcons: Record<ModeType, string> = {
   vanilla: "https://minecraft.wiki/images/End_Crystal_JE2_BE2.gif",
   uhc: "https://minecraft.wiki/images/Hardcore_Heart.svg",
   pot: "https://minecraft.wiki/images/Splash_Potion_of_Healing_JE2_BE2.png",
@@ -52,8 +76,6 @@ const modeIcons: Record<ModeType, string> = {
 };
 
 const modeBorderColors: Record<ModeType, string> = {
-  overall: "border-yellow-500",
-  ltms: "border-amber-400",
   vanilla: "border-cyan-400",
   uhc: "border-red-500",
   pot: "border-pink-500",
@@ -75,13 +97,6 @@ const modeBorderColors: Record<ModeType, string> = {
 
 // Color gradient from Dark Grey/Brown (LT5) to Bright Cyan/White (HT1)
 const tierBgColors: Record<TierLevel, string> = {
-  // Simple tiers for Overall/LTMs
-  T1: "bg-yellow-500/25",
-  T2: "bg-gray-300/20",
-  T3: "bg-orange-500/20",
-  T4: "bg-slate-500/20",
-  T5: "bg-stone-600/20",
-  // High/Low tiers for specific modes (gradient: brown/grey -> cyan/white)
   HT1: "bg-cyan-300/30",    // Highest - Bright Cyan/White
   LT1: "bg-cyan-500/25",
   HT2: "bg-teal-400/25",
@@ -96,13 +111,6 @@ const tierBgColors: Record<TierLevel, string> = {
 };
 
 const tierTextColors: Record<TierLevel, string> = {
-  // Simple tiers for Overall/LTMs
-  T1: "text-yellow-400",
-  T2: "text-gray-300",
-  T3: "text-orange-400",
-  T4: "text-slate-400",
-  T5: "text-stone-500",
-  // High/Low tiers for specific modes (gradient: brown/grey -> cyan/white)
   HT1: "text-cyan-300",     // Highest - Bright Cyan/White
   LT1: "text-cyan-400",
   HT2: "text-teal-400",

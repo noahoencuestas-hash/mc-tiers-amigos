@@ -14,7 +14,8 @@ export default function Home() {
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <ModeTabs activeMode={activeMode} onModeChange={setActiveMode} />
-        {activeMode === "overall" ? <LeaderboardTable /> : <TierColumns />}
+        {activeMode === "overall" && <LeaderboardTable />}
+        {activeMode === "tiers" && <TierColumns />}
       </main>
     </div>
   );

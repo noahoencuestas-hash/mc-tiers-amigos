@@ -160,29 +160,23 @@ const ModeIcons = {
   ),
 };
 
-export type ModeId = keyof typeof ModeIcons;
+export type ModeId = "overall" | "tiers";
 
-const modes: { id: ModeId; name: string }[] = [
-  { id: "overall", name: "Overall" },
-  { id: "ltms", name: "LTMs" },
-  { id: "vanilla", name: "Vanilla" },
-  { id: "uhc", name: "UHC" },
-  { id: "pot", name: "Pot" },
-  { id: "nethop", name: "NethOP" },
-  { id: "smp", name: "SMP" },
-  { id: "sword", name: "Sword" },
-  { id: "axe", name: "Axe" },
-  { id: "mace", name: "Mace" },
-  // 1.8 Modes
-  { id: "gapple", name: "Gapple" },
-  { id: "classic", name: "Classic" },
-  { id: "axepvp", name: "AxePVP" },
-  { id: "soup", name: "Soup" },
-  { id: "debuff", name: "Debuff" },
-  { id: "nodebuff", name: "NoDebuff" },
-  { id: "sumo", name: "Sumo" },
-  { id: "boxing", name: "Boxing" },
-  { id: "builduhc", name: "BuildUHC" },
+// Add tiers icon
+const TiersIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6">
+    <rect fill="#6366F1" x="2" y="14" width="6" height="8" rx="1"/>
+    <rect fill="#8B5CF6" x="9" y="10" width="6" height="12" rx="1"/>
+    <rect fill="#A855F7" x="16" y="6" width="6" height="16" rx="1"/>
+    <rect fill="#818CF8" x="3" y="15" width="4" height="6"/>
+    <rect fill="#A78BFA" x="10" y="11" width="4" height="10"/>
+    <rect fill="#C084FC" x="17" y="7" width="4" height="14"/>
+  </svg>
+);
+
+const modes: { id: ModeId; name: string; Icon: () => JSX.Element }[] = [
+  { id: "overall", name: "Leaderboard", Icon: ModeIcons.overall },
+  { id: "tiers", name: "Tier Management", Icon: TiersIcon },
 ];
 
 interface ModeTabsProps {
@@ -196,19 +190,18 @@ export function ModeTabs({ activeMode, onModeChange }: ModeTabsProps) {
       <div className="flex gap-1 min-w-max">
         {modes.map((mode) => {
           const isActive = activeMode === mode.id;
-          const IconComponent = ModeIcons[mode.id];
           return (
             <button
               key={mode.id}
               onClick={() => onModeChange(mode.id)}
-              className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-md transition-all min-w-[70px] ${
+              className={`flex items-center gap-2 px-6 py-3 rounded-md transition-all ${
                 isActive
-                  ? "bg-secondary text-primary border-b-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
               }`}
             >
-              <IconComponent />
-              <span className={`text-xs font-medium ${isActive ? "text-foreground" : ""}`}>
+              <mode.Icon />
+              <span className="text-sm font-semibold">
                 {mode.name}
               </span>
             </button>

@@ -1,31 +1,15 @@
 "use client";
 
-import React from "react";
+import React from "react"
+
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronUp, ChevronDown, Plus, UserPlus } from "lucide-react";
-
-interface TierPlayer {
-  id: string;
-  username: string;
-}
-
-// 10 tier levels: LT5 (lowest) -> HT1 (highest)
-interface TierData {
-  HT1: TierPlayer[];
-  LT1: TierPlayer[];
-  HT2: TierPlayer[];
-  LT2: TierPlayer[];
-  HT3: TierPlayer[];
-  LT3: TierPlayer[];
-  HT4: TierPlayer[];
-  LT4: TierPlayer[];
-  HT5: TierPlayer[];
-  LT5: TierPlayer[];
-}
+import { ChevronUp, ChevronDown, Plus, UserPlus, X } from "lucide-react";
+import { useTierContext, TIER_ORDER, type TierPlayer } from "@/lib/tier-context";
+import { MODE_ORDER, MODE_LABELS, modeIcons, type ModeType, type TierLevel } from "./tier-badge";
 
 // Color gradient from Dark Grey/Brown (LT5) to Bright Cyan/White (HT1)
-const tierColors = {
+const tierColors: Record<TierLevel, { bg: string; border: string; header: string; text: string }> = {
   HT1: { bg: "bg-cyan-300/20", border: "border-cyan-300", header: "bg-cyan-400", text: "text-cyan-300" },
   LT1: { bg: "bg-cyan-500/20", border: "border-cyan-500", header: "bg-cyan-500", text: "text-cyan-400" },
   HT2: { bg: "bg-teal-400/20", border: "border-teal-400", header: "bg-teal-400", text: "text-teal-400" },
@@ -36,63 +20,27 @@ const tierColors = {
   LT4: { bg: "bg-yellow-700/20", border: "border-yellow-700", header: "bg-yellow-700", text: "text-yellow-600" },
   HT5: { bg: "bg-amber-700/20", border: "border-amber-700", header: "bg-amber-700", text: "text-amber-600" },
   LT5: { bg: "bg-stone-600/20", border: "border-stone-600", header: "bg-stone-600", text: "text-stone-500" },
-};
-
-type TierKey = keyof TierData;
-
-// Order from highest to lowest
-const tierOrder: TierKey[] = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
-
-const tierLabels: Record<TierKey, string> = {
-  HT1: "HT1",
-  LT1: "LT1",
-  HT2: "HT2",
-  LT2: "LT2",
-  HT3: "HT3",
-  LT3: "LT3",
-  HT4: "HT4",
-  LT4: "LT4",
-  HT5: "HT5",
-  LT5: "LT5",
+  "-": { bg: "bg-gray-800/20", border: "border-gray-600", header: "bg-gray-600", text: "text-gray-500" },
 };
 
 export function TierColumns() {
-  const [tiers, setTiers] = useState<TierData>({
-    HT1: [],
-    LT1: [],
-    HT2: [],
-    LT2: [],
-    HT3: [],
-    LT3: [],
-    HT4: [],
-    LT4: [],
-    HT5: [],
-    LT5: [],
-  });
-
+  const { players, addPlayer, removePlayer, setPlayerTier, getPlayersInTier } = useTierContext();
   const [newUsername, setNewUsername] = useState("");
-  const [draggedPlayer, setDraggedPlayer] = useState<{ player: TierPlayer; fromTier: TierKey } | null>(null);
-  const [dragOverTier, setDragOverTier] = useState<TierKey | null>(null);
+  const [selectedMode, setSelectedMode] = useState<ModeType>("vanilla");
+  const [draggedPlayer, setDraggedPlayer] = useState<{ player: TierPlayer; fromTier: TierLevel } | null>(null);
+  const [dragOverTier, setDragOverTier] = useState<TierLevel | null>(null);
 
-  const addPlayer = () => {
+  const handleAddPlayer = () => {
     if (!newUsername.trim()) return;
-    const newPlayer: TierPlayer = {
-      id: `${newUsername}-${Date.now()}`,
-      username: newUsername.trim(),
-    };
-    // New players start at LT5 (lowest tier)
-    setTiers((prev) => ({
-      ...prev,
-      LT5: [...prev.LT5, newPlayer],
-    }));
+    addPlayer(newUsername.trim());
     setNewUsername("");
   };
 
-  const handleDragStart = (player: TierPlayer, fromTier: TierKey) => {
+  const handleDragStart = (player: TierPlayer, fromTier: TierLevel) => {
     setDraggedPlayer({ player, fromTier });
   };
 
-  const handleDragOver = (e: React.DragEvent, tier: TierKey) => {
+  const handleDragOver = (e: React.DragEvent, tier: TierLevel) => {
     e.preventDefault();
     setDragOverTier(tier);
   };
@@ -101,67 +49,61 @@ export function TierColumns() {
     setDragOverTier(null);
   };
 
-  const handleDrop = (toTier: TierKey) => {
+  const handleDrop = (toTier: TierLevel) => {
     if (!draggedPlayer) return;
-
     const { player, fromTier } = draggedPlayer;
-    if (fromTier === toTier) {
-      setDraggedPlayer(null);
-      setDragOverTier(null);
-      return;
+    if (fromTier !== toTier) {
+      setPlayerTier(player.id, selectedMode, toTier);
     }
-
-    setTiers((prev) => ({
-      ...prev,
-      [fromTier]: prev[fromTier].filter((p) => p.id !== player.id),
-      [toTier]: [...prev[toTier], player],
-    }));
-
     setDraggedPlayer(null);
     setDragOverTier(null);
   };
 
-  const movePlayer = (player: TierPlayer, fromTier: TierKey, direction: "up" | "down") => {
-    const currentIndex = tierOrder.indexOf(fromTier);
+  const movePlayer = (player: TierPlayer, fromTier: TierLevel, direction: "up" | "down") => {
+    const currentIndex = TIER_ORDER.indexOf(fromTier);
     const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-
-    if (newIndex < 0 || newIndex >= tierOrder.length) return;
-
-    const toTier = tierOrder[newIndex];
-
-    setTiers((prev) => ({
-      ...prev,
-      [fromTier]: prev[fromTier].filter((p) => p.id !== player.id),
-      [toTier]: [...prev[toTier], player],
-    }));
+    if (newIndex < 0 || newIndex >= TIER_ORDER.length) return;
+    const toTier = TIER_ORDER[newIndex];
+    setPlayerTier(player.id, selectedMode, toTier);
   };
 
-  const renderPlayerCard = (player: TierPlayer, tier: TierKey, index: number) => {
+  // Get unranked players (those with "-" tier in current mode)
+  const unrankedPlayers = players.filter(p => p.tiers[selectedMode] === "-");
+
+  const renderPlayerCard = (player: TierPlayer, tier: TierLevel, index: number) => {
     const isTopHT1 = tier === "HT1" && index === 0;
-    const tierIndex = tierOrder.indexOf(tier);
+    const tierIndex = TIER_ORDER.indexOf(tier);
 
     return (
       <div
         key={player.id}
         draggable
         onDragStart={() => handleDragStart(player, tier)}
-        className={`flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing transition-all ${
+        className={`relative flex items-center gap-1.5 p-1.5 rounded-md cursor-grab active:cursor-grabbing transition-all ${
           isTopHT1
             ? "bg-[#FFD700] shadow-[0_0_20px_rgba(255,215,0,0.4)]"
             : "bg-secondary hover:bg-secondary/80"
         }`}
-        style={
-          isTopHT1
-            ? { clipPath: "polygon(0 0, 100% 0, 92% 100%, 0 100%)" }
-            : undefined
-        }
+        style={isTopHT1 ? { clipPath: "polygon(0 0, 100% 0, 92% 100%, 0 100%)" } : undefined}
       >
-        {/* Avatar */}
-        <div
-          className={`relative w-10 h-10 rounded overflow-hidden shrink-0 ${
-            isTopHT1 ? "shadow-[0_0_15px_5px_rgba(255,215,0,0.6)]" : ""
+        {/* Delete Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            // Reset this mode to unranked
+            setPlayerTier(player.id, selectedMode, "-");
+          }}
+          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center transition-colors z-10 ${
+            isTopHT1
+              ? "bg-background/80 text-foreground hover:bg-background"
+              : "bg-red-500/80 text-white hover:bg-red-500"
           }`}
         >
+          <X className="w-3 h-3" />
+        </button>
+
+        {/* Avatar */}
+        <div className={`relative w-8 h-8 rounded overflow-hidden shrink-0 ${isTopHT1 ? "shadow-[0_0_10px_3px_rgba(255,215,0,0.6)]" : ""}`}>
           <Image
             src={`https://mc-heads.net/avatar/${player.username}`}
             alt={player.username}
@@ -171,54 +113,59 @@ export function TierColumns() {
           />
         </div>
 
-        {/* Username */}
-        <span className={`flex-1 font-medium text-sm truncate ${isTopHT1 ? "text-background" : "text-foreground"}`}>
-          {player.username}
-        </span>
+        {/* Username + Region */}
+        <div className="flex-1 min-w-0">
+          <span className={`font-medium text-xs truncate block ${isTopHT1 ? "text-background" : "text-foreground"}`}>
+            {player.username}
+          </span>
+          <span className={`text-[9px] ${isTopHT1 ? "text-background/70" : "text-muted-foreground"}`}>
+            {player.region}
+          </span>
+        </div>
 
         {/* Up/Down arrows */}
-        <div className="flex flex-col gap-0.5 shrink-0">
+        <div className="flex flex-col gap-0 shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
               movePlayer(player, tier, "up");
             }}
             disabled={tierIndex === 0}
-            className={`p-0.5 rounded transition-colors ${
+            className={`p-0 rounded transition-colors ${
               isTopHT1
                 ? "text-background/60 hover:text-background disabled:opacity-30"
                 : "text-muted-foreground hover:text-foreground disabled:opacity-30"
             }`}
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-3 h-3" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               movePlayer(player, tier, "down");
             }}
-            disabled={tierIndex === 9}
-            className={`p-0.5 rounded transition-colors ${
+            disabled={tierIndex === TIER_ORDER.length - 1}
+            className={`p-0 rounded transition-colors ${
               isTopHT1
                 ? "text-background/60 hover:text-background disabled:opacity-30"
                 : "text-muted-foreground hover:text-foreground disabled:opacity-30"
             }`}
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-3 h-3" />
           </button>
         </div>
       </div>
     );
   };
 
-  const renderTierColumn = (tier: TierKey, label: string) => {
+  const renderTierColumn = (tier: TierLevel) => {
     const colors = tierColors[tier];
-    const players = tiers[tier];
+    const playersInTier = getPlayersInTier(selectedMode, tier);
 
     return (
       <div
         key={tier}
-        className={`flex flex-col rounded-lg border-2 ${colors.border} ${
+        className={`flex flex-col rounded-lg border ${colors.border} ${
           dragOverTier === tier ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
         }`}
         onDragOver={(e) => handleDragOver(e, tier)}
@@ -226,18 +173,18 @@ export function TierColumns() {
         onDrop={() => handleDrop(tier)}
       >
         {/* Header */}
-        <div className={`${colors.header} text-background font-bold text-center py-2 rounded-t-md`}>
-          {label}
+        <div className={`${colors.header} text-background font-bold text-center py-1.5 rounded-t-md text-xs`}>
+          {tier}
         </div>
 
         {/* Players list */}
-        <div className={`flex-1 ${colors.bg} p-1.5 min-h-[200px] space-y-1.5 rounded-b-md`}>
-          {players.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm italic">
-              Drop players here
+        <div className={`flex-1 ${colors.bg} p-1 min-h-[150px] space-y-1 rounded-b-md`}>
+          {playersInTier.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-[10px] italic">
+              Drop here
             </div>
           ) : (
-            players.map((player, index) => renderPlayerCard(player, tier, index))
+            playersInTier.map((player, index) => renderPlayerCard(player, tier, index))
           )}
         </div>
       </div>
@@ -254,12 +201,12 @@ export function TierColumns() {
             type="text"
             value={newUsername}
             onChange={(e) => setNewUsername(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addPlayer()}
+            onKeyDown={(e) => e.key === "Enter" && handleAddPlayer()}
             placeholder="Enter Minecraft username..."
             className="flex-1 bg-secondary border border-border rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
-            onClick={addPlayer}
+            onClick={handleAddPlayer}
             className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -267,13 +214,98 @@ export function TierColumns() {
           </button>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          New players will be added to LT5 (lowest). Drag and drop to move between tiers. HT1 is the highest tier.
+          Add players, then select a mode below to assign tiers. HT1 is the highest tier, LT5 is the lowest.
         </p>
       </div>
 
+      {/* Mode Selection Tabs */}
+      <div className="bg-card rounded-lg border border-border p-3">
+        <h3 className="text-sm font-semibold text-foreground mb-2">Select Mode to Edit:</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {MODE_ORDER.map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSelectedMode(mode)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                selectedMode === mode
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <div className="relative w-4 h-4">
+                <Image
+                  src={modeIcons[mode] || "/placeholder.svg"}
+                  alt={mode}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+              <span>{MODE_LABELS[mode]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Currently Selected Mode Header */}
+      <div className="flex items-center gap-3 bg-card rounded-lg border border-border p-3">
+        <div className="relative w-8 h-8">
+          <Image
+            src={modeIcons[selectedMode] || "/placeholder.svg"}
+            alt={selectedMode}
+            fill
+            className="object-contain"
+            unoptimized
+          />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-foreground">{MODE_LABELS[selectedMode]}</h3>
+          <p className="text-xs text-muted-foreground">Drag players to assign tiers for this mode</p>
+        </div>
+      </div>
+
+      {/* Unranked Players Pool */}
+      {unrankedPlayers.length > 0 && (
+        <div className="bg-card rounded-lg border border-border p-3">
+          <h4 className="text-sm font-semibold text-muted-foreground mb-2">Unranked Players (drag to a tier):</h4>
+          <div className="flex flex-wrap gap-2">
+            {unrankedPlayers.map((player) => (
+              <div
+                key={player.id}
+                draggable
+                onDragStart={() => handleDragStart(player, "-")}
+                className="relative flex items-center gap-2 bg-secondary px-2 py-1.5 rounded-md cursor-grab active:cursor-grabbing"
+              >
+                {/* Remove player entirely button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removePlayer(player.id);
+                  }}
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500/80 text-white hover:bg-red-500 flex items-center justify-center z-10"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <div className="relative w-6 h-6 rounded overflow-hidden">
+                  <Image
+                    src={`https://mc-heads.net/avatar/${player.username}`}
+                    alt={player.username}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+                <span className="text-sm text-foreground">{player.username}</span>
+                <span className="text-xs text-muted-foreground">({player.region})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tier Columns - 10 levels */}
-      <div className="grid grid-cols-10 gap-2">
-        {tierOrder.map((tier) => renderTierColumn(tier, tierLabels[tier]))}
+      <div className="grid grid-cols-10 gap-1.5">
+        {TIER_ORDER.map((tier) => renderTierColumn(tier))}
       </div>
     </div>
   );
