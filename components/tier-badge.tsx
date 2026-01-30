@@ -1,6 +1,8 @@
 import Image from "next/image";
 
-type TierLevel = "HT1" | "HT2" | "HT3" | "HT4" | "LT1" | "LT2" | "LT3" | "LT4" | "-";
+// For Overall and LTMs: simple T1-T5 system
+// For all other 17 modes: High/Low system with 10 levels
+type TierLevel = "T1" | "T2" | "T3" | "T4" | "T5" | "HT1" | "HT2" | "HT3" | "HT4" | "HT5" | "LT1" | "LT2" | "LT3" | "LT4" | "LT5" | "-";
 type ModeType = 
   | "overall" 
   | "ltms" 
@@ -71,27 +73,46 @@ const modeBorderColors: Record<ModeType, string> = {
   axe: "border-emerald-400",
 };
 
+// Color gradient from Dark Grey/Brown (LT5) to Bright Cyan/White (HT1)
 const tierBgColors: Record<TierLevel, string> = {
-  HT1: "bg-green-500/20",
-  HT2: "bg-cyan-500/20",
-  HT3: "bg-orange-500/20",
-  HT4: "bg-gray-500/20",
-  LT1: "bg-red-500/20",
-  LT2: "bg-purple-500/20",
-  LT3: "bg-yellow-500/20",
-  LT4: "bg-pink-500/20",
+  // Simple tiers for Overall/LTMs
+  T1: "bg-yellow-500/25",
+  T2: "bg-gray-300/20",
+  T3: "bg-orange-500/20",
+  T4: "bg-slate-500/20",
+  T5: "bg-stone-600/20",
+  // High/Low tiers for specific modes (gradient: brown/grey -> cyan/white)
+  HT1: "bg-cyan-300/30",    // Highest - Bright Cyan/White
+  LT1: "bg-cyan-500/25",
+  HT2: "bg-teal-400/25",
+  LT2: "bg-teal-600/20",
+  HT3: "bg-emerald-500/20",
+  LT3: "bg-green-600/20",
+  HT4: "bg-lime-600/20",
+  LT4: "bg-yellow-700/20",
+  HT5: "bg-amber-700/20",
+  LT5: "bg-stone-700/25",   // Lowest - Dark Grey/Brown
   "-": "bg-gray-800/50",
 };
 
 const tierTextColors: Record<TierLevel, string> = {
-  HT1: "text-green-400",
-  HT2: "text-cyan-400",
-  HT3: "text-orange-400",
-  HT4: "text-gray-400",
-  LT1: "text-red-400",
-  LT2: "text-purple-400",
-  LT3: "text-yellow-400",
-  LT4: "text-pink-400",
+  // Simple tiers for Overall/LTMs
+  T1: "text-yellow-400",
+  T2: "text-gray-300",
+  T3: "text-orange-400",
+  T4: "text-slate-400",
+  T5: "text-stone-500",
+  // High/Low tiers for specific modes (gradient: brown/grey -> cyan/white)
+  HT1: "text-cyan-300",     // Highest - Bright Cyan/White
+  LT1: "text-cyan-400",
+  HT2: "text-teal-400",
+  LT2: "text-teal-500",
+  HT3: "text-emerald-400",
+  LT3: "text-green-500",
+  HT4: "text-lime-500",
+  LT4: "text-yellow-600",
+  HT5: "text-amber-600",
+  LT5: "text-stone-500",    // Lowest - Dark Grey/Brown
   "-": "text-gray-600",
 };
 

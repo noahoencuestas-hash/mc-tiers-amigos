@@ -4,7 +4,9 @@ import Image from "next/image";
 import { TierBadge } from "./tier-badge";
 import { Info, ExternalLink, Headphones } from "lucide-react";
 
-type TierLevel = "HT1" | "HT2" | "HT3" | "HT4" | "LT1" | "LT2" | "LT3" | "LT4" | "-";
+// For Overall and LTMs: simple T1-T5 system
+// For all other 17 modes: High/Low system with 10 levels
+type TierLevel = "T1" | "T2" | "T3" | "T4" | "T5" | "HT1" | "HT2" | "HT3" | "HT4" | "HT5" | "LT1" | "LT2" | "LT3" | "LT4" | "LT5" | "-";
 type Region = "NA" | "EU" | "AS" | "SA" | "OC" | "AR" | "PE" | "CL" | "CO" | "MX" | "EC" | "BL" | "VE";
 type Title = "Combat Grandmaster" | "Combat Master" | "Combat Ace" | "Unranked";
 
@@ -80,7 +82,7 @@ const players: Player[] = [
   { rank: 18, username: "LinoGuaton", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
   { rank: 19, username: "TS_Danco", title: "Unranked", points: 0, region: "MX", tiers: { ...defaultTiers } },
   { rank: 20, username: "Chiku2325", title: "Unranked", points: 0, region: "PE", tiers: { ...defaultTiers } },
-  { rank: 21, username: "Player_21", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
+  { rank: 21, username: "BluDef",  title: "Unranked", points: 0, region: "MX", tiers: { ...defaultTiers } },
   { rank: 22, username: "Player_22", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
   { rank: 23, username: "Player_23", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },
   { rank: 24, username: "Player_24", title: "Unranked", points: 0, region: "NA", tiers: { ...defaultTiers } },

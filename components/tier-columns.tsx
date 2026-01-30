@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react"
-
+import React from "react";
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronUp, ChevronDown, Plus, UserPlus } from "lucide-react";
@@ -11,31 +10,64 @@ interface TierPlayer {
   username: string;
 }
 
+// 10 tier levels: LT5 (lowest) -> HT1 (highest)
 interface TierData {
-  tier1: TierPlayer[];
-  tier2: TierPlayer[];
-  tier3: TierPlayer[];
-  tier4: TierPlayer[];
-  tier5: TierPlayer[];
+  HT1: TierPlayer[];
+  LT1: TierPlayer[];
+  HT2: TierPlayer[];
+  LT2: TierPlayer[];
+  HT3: TierPlayer[];
+  LT3: TierPlayer[];
+  HT4: TierPlayer[];
+  LT4: TierPlayer[];
+  HT5: TierPlayer[];
+  LT5: TierPlayer[];
 }
 
+// Color gradient from Dark Grey/Brown (LT5) to Bright Cyan/White (HT1)
 const tierColors = {
-  tier1: { bg: "bg-yellow-500/20", border: "border-yellow-500", header: "bg-yellow-500", text: "text-yellow-400" },
-  tier2: { bg: "bg-gray-400/20", border: "border-gray-400", header: "bg-gray-400", text: "text-gray-300" },
-  tier3: { bg: "bg-orange-500/20", border: "border-orange-500", header: "bg-orange-500", text: "text-orange-400" },
-  tier4: { bg: "bg-slate-600/20", border: "border-slate-600", header: "bg-slate-600", text: "text-slate-400" },
-  tier5: { bg: "bg-slate-700/20", border: "border-slate-700", header: "bg-slate-700", text: "text-slate-500" },
+  HT1: { bg: "bg-cyan-300/20", border: "border-cyan-300", header: "bg-cyan-400", text: "text-cyan-300" },
+  LT1: { bg: "bg-cyan-500/20", border: "border-cyan-500", header: "bg-cyan-500", text: "text-cyan-400" },
+  HT2: { bg: "bg-teal-400/20", border: "border-teal-400", header: "bg-teal-400", text: "text-teal-400" },
+  LT2: { bg: "bg-teal-600/20", border: "border-teal-600", header: "bg-teal-600", text: "text-teal-500" },
+  HT3: { bg: "bg-emerald-500/20", border: "border-emerald-500", header: "bg-emerald-500", text: "text-emerald-400" },
+  LT3: { bg: "bg-green-600/20", border: "border-green-600", header: "bg-green-600", text: "text-green-500" },
+  HT4: { bg: "bg-lime-600/20", border: "border-lime-600", header: "bg-lime-600", text: "text-lime-500" },
+  LT4: { bg: "bg-yellow-700/20", border: "border-yellow-700", header: "bg-yellow-700", text: "text-yellow-600" },
+  HT5: { bg: "bg-amber-700/20", border: "border-amber-700", header: "bg-amber-700", text: "text-amber-600" },
+  LT5: { bg: "bg-stone-600/20", border: "border-stone-600", header: "bg-stone-600", text: "text-stone-500" },
 };
 
 type TierKey = keyof TierData;
 
+// Order from highest to lowest
+const tierOrder: TierKey[] = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
+
+const tierLabels: Record<TierKey, string> = {
+  HT1: "HT1",
+  LT1: "LT1",
+  HT2: "HT2",
+  LT2: "LT2",
+  HT3: "HT3",
+  LT3: "LT3",
+  HT4: "HT4",
+  LT4: "LT4",
+  HT5: "HT5",
+  LT5: "LT5",
+};
+
 export function TierColumns() {
   const [tiers, setTiers] = useState<TierData>({
-    tier1: [],
-    tier2: [],
-    tier3: [],
-    tier4: [],
-    tier5: [],
+    HT1: [],
+    LT1: [],
+    HT2: [],
+    LT2: [],
+    HT3: [],
+    LT3: [],
+    HT4: [],
+    LT4: [],
+    HT5: [],
+    LT5: [],
   });
 
   const [newUsername, setNewUsername] = useState("");
@@ -48,9 +80,10 @@ export function TierColumns() {
       id: `${newUsername}-${Date.now()}`,
       username: newUsername.trim(),
     };
+    // New players start at LT5 (lowest tier)
     setTiers((prev) => ({
       ...prev,
-      tier5: [...prev.tier5, newPlayer],
+      LT5: [...prev.LT5, newPlayer],
     }));
     setNewUsername("");
   };
@@ -89,7 +122,6 @@ export function TierColumns() {
   };
 
   const movePlayer = (player: TierPlayer, fromTier: TierKey, direction: "up" | "down") => {
-    const tierOrder: TierKey[] = ["tier1", "tier2", "tier3", "tier4", "tier5"];
     const currentIndex = tierOrder.indexOf(fromTier);
     const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
@@ -105,8 +137,8 @@ export function TierColumns() {
   };
 
   const renderPlayerCard = (player: TierPlayer, tier: TierKey, index: number) => {
-    const isTopTier1 = tier === "tier1" && index === 0;
-    const tierIndex = ["tier1", "tier2", "tier3", "tier4", "tier5"].indexOf(tier);
+    const isTopHT1 = tier === "HT1" && index === 0;
+    const tierIndex = tierOrder.indexOf(tier);
 
     return (
       <div
@@ -114,12 +146,12 @@ export function TierColumns() {
         draggable
         onDragStart={() => handleDragStart(player, tier)}
         className={`flex items-center gap-2 p-2 rounded-md cursor-grab active:cursor-grabbing transition-all ${
-          isTopTier1
+          isTopHT1
             ? "bg-[#FFD700] shadow-[0_0_20px_rgba(255,215,0,0.4)]"
             : "bg-secondary hover:bg-secondary/80"
         }`}
         style={
-          isTopTier1
+          isTopHT1
             ? { clipPath: "polygon(0 0, 100% 0, 92% 100%, 0 100%)" }
             : undefined
         }
@@ -127,7 +159,7 @@ export function TierColumns() {
         {/* Avatar */}
         <div
           className={`relative w-10 h-10 rounded overflow-hidden shrink-0 ${
-            isTopTier1 ? "shadow-[0_0_15px_5px_rgba(255,215,0,0.6)]" : ""
+            isTopHT1 ? "shadow-[0_0_15px_5px_rgba(255,215,0,0.6)]" : ""
           }`}
         >
           <Image
@@ -140,7 +172,7 @@ export function TierColumns() {
         </div>
 
         {/* Username */}
-        <span className={`flex-1 font-medium text-sm truncate ${isTopTier1 ? "text-background" : "text-foreground"}`}>
+        <span className={`flex-1 font-medium text-sm truncate ${isTopHT1 ? "text-background" : "text-foreground"}`}>
           {player.username}
         </span>
 
@@ -153,7 +185,7 @@ export function TierColumns() {
             }}
             disabled={tierIndex === 0}
             className={`p-0.5 rounded transition-colors ${
-              isTopTier1
+              isTopHT1
                 ? "text-background/60 hover:text-background disabled:opacity-30"
                 : "text-muted-foreground hover:text-foreground disabled:opacity-30"
             }`}
@@ -165,9 +197,9 @@ export function TierColumns() {
               e.stopPropagation();
               movePlayer(player, tier, "down");
             }}
-            disabled={tierIndex === 4}
+            disabled={tierIndex === 9}
             className={`p-0.5 rounded transition-colors ${
-              isTopTier1
+              isTopHT1
                 ? "text-background/60 hover:text-background disabled:opacity-30"
                 : "text-muted-foreground hover:text-foreground disabled:opacity-30"
             }`}
@@ -199,7 +231,7 @@ export function TierColumns() {
         </div>
 
         {/* Players list */}
-        <div className={`flex-1 ${colors.bg} p-2 min-h-[300px] space-y-2 rounded-b-md`}>
+        <div className={`flex-1 ${colors.bg} p-1.5 min-h-[200px] space-y-1.5 rounded-b-md`}>
           {players.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm italic">
               Drop players here
@@ -235,17 +267,13 @@ export function TierColumns() {
           </button>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          New players will be added to Tier 5. Drag and drop to move between tiers.
+          New players will be added to LT5 (lowest). Drag and drop to move between tiers. HT1 is the highest tier.
         </p>
       </div>
 
-      {/* Tier Columns */}
-      <div className="grid grid-cols-5 gap-4">
-        {renderTierColumn("tier1", "Tier 1")}
-        {renderTierColumn("tier2", "Tier 2")}
-        {renderTierColumn("tier3", "Tier 3")}
-        {renderTierColumn("tier4", "Tier 4")}
-        {renderTierColumn("tier5", "Tier 5")}
+      {/* Tier Columns - 10 levels */}
+      <div className="grid grid-cols-10 gap-2">
+        {tierOrder.map((tier) => renderTierColumn(tier, tierLabels[tier]))}
       </div>
     </div>
   );
